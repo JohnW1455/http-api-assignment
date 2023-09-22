@@ -5,6 +5,76 @@
   <link rel="stylesheet" type="text/css" href="/style.css">
   
   <script>
+    const handleResponse = (response, jsonBool) => {
+      const content = document.querySelector('#content');
+      response.text().then(text => {
+        const contentType = response.headers.get('Content-Type');
+        console.log(text);
+
+        switch(response.status) {
+        case 200: 
+          content.innerHTML = `<h1><b>Success</b></h1>`;
+          break;
+        case 400: 
+          content.innerHTML = `<h1><b>Bad Request</b></h1>`;
+          break;
+        case 401:
+          content.innerHTML = `<h1><b>Unauthorized</b></h1>`;
+          break;
+        case 403:
+          content.innerHTML = `<h1><b>Forbidden</b></h1>`;
+          break;
+        case 500:
+          content.innerHTML = `<h1><b>Internal Server Error</b></h1>`;
+          break;
+        case 501:
+          content.innerHTML = `<h1><b>Not Implemented</b></h1>`;
+          break;
+        case 404:
+          content.innerHTML = `<h1><b>Resource Not Found</b></h1>`;
+          break;
+        default: 
+          content.innerHTML = `Error code not implemented by client.`;
+          break;
+        }
+
+        if (contentType === 'application/json') {
+          parsedResponse = JSON.parse(text);
+          const message = parsedResponse.message;
+          content.innerHTML += `\n<p>Message: ${message}</p>`;
+        }
+        else if (contentType === 'text/xml') {
+          const parsedResponse = new window.DOMParser().parseFromString(text, 'text/html');
+          content.innerHTML += `\nMessage: ` + parsedResponse.querySelector('message').textContent;
+        }
+      });   
+    };
+
+    const requestUpdate = async (pageValue, typeValue) => {
+      
+      const response = await fetch(pageValue, {
+        method: 'GET',
+        headers: {
+          'Accept': typeValue,
+        }
+      });
+
+      handleResponse(response);
+    };
+
+    const init = () => {
+      const pageForm = document.querySelector('#page');
+      const typeForm = document.querySelector('#type');
+      const sendButton = document.querySelector('#send');
+
+      sendButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        requestUpdate(pageForm.value, typeForm.value);
+        return false;
+      });
+    };
+
+    window.onload = init;
 
   </script>
 </head>
